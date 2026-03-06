@@ -217,6 +217,20 @@ export type Database = DatabaseProps & {
    * The organization of the database
    */
   organization: string;
+
+  /**
+   * The actual region of the database as reported by PlanetScale
+   */
+  actualRegion: {
+    /**
+     * The slug identifier of the region (e.g. "us-east", "eu-west")
+     */
+    slug: string;
+    /**
+     * Display name of the region (e.g. "US East", "EU West")
+     */
+    displayName: string;
+  };
 };
 
 /**
@@ -331,6 +345,19 @@ export const Database = Resource(
           cause: getResponse.error,
         });
       }
+
+      // Validate region matches if specified
+      if (props.region) {
+        const actualSlug = getResponse.data.region.slug;
+        if (actualSlug !== props.region.slug) {
+          throw new Error(
+            `Database "${databaseName}" is in region "${actualSlug}" but expected "${props.region.slug}". ` +
+              `PlanetScale database regions cannot be changed after creation. ` +
+              `Either update the region in your configuration to match, or create a new database in the correct region.`,
+          );
+        }
+      }
+
       // Update database settings
       // If updating to a non-'main' default branch, create it first
       if (props.defaultBranch && props.defaultBranch !== "main") {
@@ -423,6 +450,10 @@ export const Database = Resource(
         updatedAt: data.updated_at,
         htmlUrl: data.html_url,
         organization,
+        actualRegion: {
+          slug: data.region.slug,
+          displayName: data.region.display_name,
+        },
       };
     }
 
@@ -546,6 +577,10 @@ export const Database = Resource(
           updatedAt: updatedData.updated_at,
           htmlUrl: updatedData.html_url,
           organization,
+          actualRegion: {
+            slug: updatedData.region.slug,
+            displayName: updatedData.region.display_name,
+          },
         };
       }
     }
@@ -573,6 +608,10 @@ export const Database = Resource(
       updatedAt: data.updated_at,
       htmlUrl: data.html_url,
       organization,
+      actualRegion: {
+        slug: data.region.slug,
+        displayName: data.region.display_name,
+      },
     };
   },
 );
