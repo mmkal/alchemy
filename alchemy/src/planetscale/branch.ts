@@ -88,10 +88,14 @@ export interface BranchProps extends PlanetScaleProps {
    * The region to create the branch in.
    * If not provided, the branch will be created in the default region for its database.
    * On adopt/update, if specified, the actual branch region is validated against this value.
+   *
+   * @see https://planetscale.com/docs/concepts/regions
    */
   region?: {
     /**
-     * The slug identifier of the region (e.g. "us-east", "eu-west")
+     * The slug identifier of the region (e.g. "us-east", "eu-west", "gcp-us-central1")
+     *
+     * @see https://planetscale.com/docs/concepts/regions#available-regions
      */
     slug: string;
   };
@@ -127,17 +131,17 @@ export interface Branch extends BranchProps {
   htmlUrl: string;
 
   /**
-   * The actual region of the branch as reported by PlanetScale
+   * The region of the branch as reported by PlanetScale.
+   *
+   * @see https://planetscale.com/docs/concepts/regions
    */
-  actualRegion: {
+  region: {
     /**
-     * The slug identifier of the region (e.g. "us-east", "eu-west")
+     * The slug identifier of the region (e.g. "us-east", "eu-west", "gcp-us-central1")
+     *
+     * @see https://planetscale.com/docs/concepts/regions#available-regions
      */
     slug: string;
-    /**
-     * Display name of the region (e.g. "US East", "EU West")
-     */
-    displayName: string;
   };
 }
 
@@ -361,10 +365,7 @@ export const Branch = Resource(
         createdAt: data.created_at,
         updatedAt: data.updated_at,
         htmlUrl: data.html_url,
-        actualRegion: {
-          slug: data.region.slug,
-          displayName: data.region.display_name,
-        },
+        region: { slug: data.region.slug },
       };
     }
     let clusterSize: string | undefined;
@@ -434,10 +435,7 @@ export const Branch = Resource(
       createdAt: data.created_at,
       updatedAt: data.updated_at,
       htmlUrl: data.html_url,
-      actualRegion: {
-        slug: data.region.slug,
-        displayName: data.region.display_name,
-      },
+      region: { slug: data.region.slug },
     };
   },
 );

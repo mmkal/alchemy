@@ -42,11 +42,15 @@ interface BaseDatabaseProps extends PlanetScaleProps {
   delete?: boolean;
 
   /**
-   * The region where the database will be created (create only)
+   * The region where the database will be created (create only).
+   *
+   * @see https://planetscale.com/docs/concepts/regions
    */
   region?: {
     /**
-     * The slug identifier of the region
+     * The slug identifier of the region (e.g. "us-east", "eu-west", "gcp-us-central1")
+     *
+     * @see https://planetscale.com/docs/concepts/regions#available-regions
      */
     slug: string;
   };
@@ -219,17 +223,17 @@ export type Database = DatabaseProps & {
   organization: string;
 
   /**
-   * The actual region of the database as reported by PlanetScale
+   * The region of the database as reported by PlanetScale.
+   *
+   * @see https://planetscale.com/docs/concepts/regions
    */
-  actualRegion: {
+  region: {
     /**
-     * The slug identifier of the region (e.g. "us-east", "eu-west")
+     * The slug identifier of the region (e.g. "us-east", "eu-west", "gcp-us-central1")
+     *
+     * @see https://planetscale.com/docs/concepts/regions#available-regions
      */
     slug: string;
-    /**
-     * Display name of the region (e.g. "US East", "EU West")
-     */
-    displayName: string;
   };
 };
 
@@ -480,10 +484,7 @@ export const Database = Resource(
         updatedAt: data.updated_at,
         htmlUrl: data.html_url,
         organization,
-        actualRegion: {
-          slug: data.region.slug,
-          displayName: data.region.display_name,
-        },
+        region: { slug: data.region.slug },
       };
     }
 
@@ -607,10 +608,7 @@ export const Database = Resource(
           updatedAt: updatedData.updated_at,
           htmlUrl: updatedData.html_url,
           organization,
-          actualRegion: {
-            slug: updatedData.region.slug,
-            displayName: updatedData.region.display_name,
-          },
+          region: { slug: updatedData.region.slug },
         };
       }
     }
@@ -638,10 +636,7 @@ export const Database = Resource(
       updatedAt: data.updated_at,
       htmlUrl: data.html_url,
       organization,
-      actualRegion: {
-        slug: data.region.slug,
-        displayName: data.region.display_name,
-      },
+      region: { slug: data.region.slug },
     };
   },
 );

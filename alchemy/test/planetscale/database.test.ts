@@ -51,9 +51,8 @@ describe.skipIf(!process.env.PLANETSCALE_TEST).concurrent.each(kinds)(
           updatedAt: expect.any(String),
           htmlUrl: expect.any(String),
           kind,
-          actualRegion: {
+          region: {
             slug: expect.any(String),
-            displayName: expect.any(String),
           },
         });
 
@@ -314,9 +313,8 @@ describe.skipIf(!process.env.PLANETSCALE_TEST).concurrent.each(kinds)(
           delete: true,
         });
 
-        expect(database.actualRegion).toMatchObject({
+        expect(database.region).toMatchObject({
           slug: "us-east",
-          displayName: expect.any(String),
         });
 
         // Now try to adopt it with a different region — should throw
@@ -341,7 +339,7 @@ describe.skipIf(!process.env.PLANETSCALE_TEST).concurrent.each(kinds)(
           delete: true,
         });
 
-        expect(adopted.actualRegion.slug).toBe("us-east");
+        expect(adopted.region.slug).toBe("us-east");
       } finally {
         await destroy(scope);
         await assertDatabaseDeleted(api, organization, name);
