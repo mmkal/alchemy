@@ -346,7 +346,15 @@ export const Database = Resource(
         });
       }
 
-      // Validate region matches if specified
+      // Validate immutable properties match if specified
+      const actualKind = getResponse.data.kind;
+      if (props.kind && actualKind !== props.kind) {
+        throw new Error(
+          `Database "${databaseName}" has kind "${actualKind}" but expected "${props.kind}". ` +
+            `Database kind cannot be changed after creation.`,
+        );
+      }
+
       if (props.region) {
         const actualSlug = getResponse.data.region.slug;
         if (actualSlug !== props.region.slug) {
@@ -355,6 +363,28 @@ export const Database = Resource(
               `PlanetScale database regions cannot be changed after creation. ` +
               `Either update the region in your configuration to match, or create a new database in the correct region.`,
           );
+        }
+      }
+
+      if (props.kind === "postgresql" && props.arch) {
+        const defaultBranch = props.defaultBranch || "main";
+        const branchInfo = await api.getBranch({
+          path: {
+            organization,
+            database: databaseName,
+            branch: defaultBranch,
+          },
+          throwOnError: false,
+        });
+        if (branchInfo.data?.cluster_architecture) {
+          const actualArch =
+            branchInfo.data.cluster_architecture === "aarch64" ? "arm" : "x86";
+          if (actualArch !== props.arch) {
+            throw new Error(
+              `Database "${databaseName}" has architecture "${actualArch}" but expected "${props.arch}". ` +
+                `Database architecture cannot be changed after creation.`,
+            );
+          }
         }
       }
 

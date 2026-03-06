@@ -348,6 +348,96 @@ describe.skipIf(!process.env.PLANETSCALE_TEST).concurrent.each(kinds)(
       }
     }, 5_000_000);
 
+    test(`adopt with wrong kind should throw (${kind})`, async (scope) => {
+      const name = `${BRANCH_PREFIX}-${kind}-kind`;
+      const wrongKind = kind === "mysql" ? "postgresql" : "mysql";
+
+      try {
+        await Database("kind-check", {
+          name,
+          clusterSize: "PS_10",
+          kind,
+          delete: true,
+        });
+
+        await waitForDatabaseReady(api, organization, name);
+
+        // Try to adopt with the wrong kind — should throw
+        await expect(
+          Database("kind-check", {
+            name,
+            adopt: true,
+            clusterSize: "PS_10",
+            kind: wrongKind,
+            delete: true,
+          }),
+        ).rejects.toThrow(
+          new RegExp(`has kind "${kind}" but expected "${wrongKind}"`),
+        );
+
+        // Adopting with the correct kind should succeed
+        const adopted = await Database("kind-check", {
+          name,
+          adopt: true,
+          clusterSize: "PS_10",
+          kind,
+          delete: true,
+        });
+
+        expect(adopted.name).toBe(name);
+      } finally {
+        await destroy(scope);
+        await assertDatabaseDeleted(api, organization, name);
+      }
+    }, 5_000_000);
+
+    test.skipIf(kind !== "postgresql")(
+      `adopt with wrong arch should throw (${kind})`,
+      async (scope) => {
+        const name = `${BRANCH_PREFIX}-${kind}-arch-check`;
+
+        try {
+          await Database("arch-check", {
+            name,
+            clusterSize: "PS_10",
+            kind: "postgresql",
+            arch: "x86",
+            delete: true,
+          });
+
+          await waitForDatabaseReady(api, organization, name);
+
+          // Try to adopt with the wrong arch — should throw
+          await expect(
+            Database("arch-check", {
+              name,
+              adopt: true,
+              clusterSize: "PS_10",
+              kind: "postgresql",
+              arch: "arm",
+              delete: true,
+            }),
+          ).rejects.toThrow(/has architecture "x86" but expected "arm"/);
+
+          // Adopting with the correct arch should succeed
+          const adopted = await Database("arch-check", {
+            name,
+            adopt: true,
+            clusterSize: "PS_10",
+            kind: "postgresql",
+            arch: "x86",
+            delete: true,
+          });
+
+          expect(adopted.name).toBe(name);
+        } finally {
+          await destroy(scope);
+          await assertDatabaseDeleted(api, organization, name);
+        }
+      },
+      5_000_000,
+    );
+
     test(`database with delete=false should not be deleted via API (${kind})`, async (scope) => {
       const name = `${BRANCH_PREFIX}-${kind}-nodelete`;
 
